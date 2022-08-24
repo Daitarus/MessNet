@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 
 namespace Server
 {
@@ -36,39 +37,19 @@ namespace Server
 
             //start server
             TcpS tcpS = new TcpS(ip, port);
-            if(tcpS.Open())
+            string message;
+            if (tcpS.Open())
             {
                 Console.WriteLine("Server start ... ");
-                string message;
                 while (true)
                 {
-                    Console.WriteLine("Server ready connect ...");
+                    TcpClient client = new TcpClient();                  
                     //connection
-                    if (tcpS.GetConnection())
+                    if (tcpS.GetConnection(out client))
                     {
-                        ip=tcpS.GetClientIp();
-                        //read message
-                        Console.WriteLine("New connection ...");
-                        if (tcpS.ReadTcp(out message))
-                        {
-                            //write
-                            DataMess dataMess = new DataMess();
-                            dataMess.NewDataMess(DateTime.Now, ip, message);
-                            Console.WriteLine(FileWork.WriteXML(dataMess));
-                            //if(FileWork.WriteXML("Log.xml", dataMess))
-                            //{
-                            //    Console.WriteLine("Message was write !");
-                            //}
-                            //else
-                            //{
-                            //    Console.WriteLine("Error: Message was send, but not write !!!");
-                            //}
-                        }
-                        else
-                        {
-                            Console.WriteLine("Error: Message don't send, no conection !!!");
-                            break;
-                        }
+                        //thread for new client
+                        Thread clientThread = new Thread(() => ClientWork(client));
+                        clientThread.Start();
                     }
                     else
                     {
@@ -76,22 +57,33 @@ namespace Server
                         break;
                     }
                 }
-                tcpS.Close();
             }
             else
             {
                 Console.WriteLine("Error: Server not started !!!");
             }
-            
             Console.ReadKey();
+
+            void ClientWork(TcpClient client)
+            {
+                string message;
+                TcpC tcpC = new TcpC(client);
+                IPAddress ip = tcpC.GetClientIp();
+                //read message
+                Console.WriteLine("New connection ...");
+                if (tcpC.ReadTcp(out message))
+                {
+                    //write
+                    DataMess dataMess = new DataMess(DateTime.Now, ip, message);
+                    Console.WriteLine(FileWork.WriteXML(dataMess));
+                }
+                else
+                {
+                    Console.WriteLine("Error: Message don't send, no conection !!!");
+                }
+                tcpC.Close();
+            }
         }
-        //public static DataMess NewDataMess(DateTime dateTime, IPAddress ip, string message)
-        //{
-        //    DataMess dataMess = new DataMess();
-        //    dataMess.dateWrite = dateTime;
-        //    dataMess.ip = ip.ToString();
-        //    dataMess.message = message;
-        //    return dataMess;
-        //}
+
     }
 }

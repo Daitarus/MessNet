@@ -29,7 +29,7 @@ namespace Server
                 return false;
             }
         }
-        public bool GetConnection()
+        public bool GetConnection(out TcpClient client)
         {
             try
             {
@@ -38,36 +38,8 @@ namespace Server
             }
             catch
             {
+                client = new TcpClient();
                 return false;
-            }
-        }
-
-        public bool ReadTcp(out string str)
-        {
-            str = null;
-            try
-            { 
-                NetworkStream stream = client.GetStream();
-                StreamReader reader = new StreamReader(stream);
-                str = reader.ReadLine();
-                reader.Close();
-                stream.Close();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        public IPAddress GetClientIp()
-        {
-            return ((IPEndPoint)client.Client.RemoteEndPoint).Address;
-        }
-        public void Close()
-        {
-            if (client != null)
-            {
-                client.Close();
             }
         }
     }
