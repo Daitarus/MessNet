@@ -16,63 +16,74 @@ namespace Client
             //enter ip
             while (!flag)
             {
-                Console.Write("Please, enter your ip: ");
+                SystemMessage.PrintSM(0, 15, false);
                 flag = IPAddress.TryParse(Console.ReadLine(), out ip);
                 if (!flag)
                 {
-                    Console.WriteLine("Error: Uncorrect ip !!!");
+                    SystemMessage.PrintSM(2, 12, true);
                 }
             }
             flag = false;
             //enter port
             while (!flag)
             {
-                Console.Write("Please, enter tcp port: ");
+                SystemMessage.PrintSM(1, 15, false);
                 flag = int.TryParse(Console.ReadLine(), out port);
                 if (!flag)
                 {
-                    Console.WriteLine("Error: Uncorrect port !!!");
+                    SystemMessage.PrintSM(2, 12, true);
                 }
             }
             flag=false;
             //start client
             TcpClient tcpClient = new TcpClient();
             //connect
-            try
+            while (true)
             {
-                tcpClient.Connect(ip, port);
-                Console.WriteLine("Connection successful ...");
                 //write message
-                string message="";
+                string? message = null;
                 while (!flag)
                 {
-                    Console.WriteLine("Enter your message: ");
-                    message = Console.ReadLine();
+                    //SystemMessage.PrintSM(3, 10, false);
+                    message = ip.ToString();
                     flag = !string.IsNullOrEmpty(message);
-                    if(!flag)
+                    if (!flag)
                     {
-                        Console.WriteLine("Error: Null message !!!");
+                        SystemMessage.PrintSM(4, 12, true);
                     }
                 }
                 flag = false;
-                //send
                 try
                 {
-                    NetworkStream stream = tcpClient.GetStream();
-                    StreamWriter writer = new StreamWriter(stream);
-                    writer.WriteLine(message);                   
-                    writer.Close();
-                    stream.Close();
-                    Console.WriteLine("Message sended !");
+                    tcpClient = new TcpClient();
+                    tcpClient.Connect(ip, port);
+                    SystemMessage.PrintSM(5, 14, true);
+                    //send
+                    try
+                    {
+                        NetworkStream stream = tcpClient.GetStream();
+                        StreamWriter writer = new StreamWriter(stream);
+                        writer.WriteLine(message);
+                        writer.Close();
+                        stream.Close();
+                        SystemMessage.PrintSM(6, 11, true);
+                    }
+                    catch
+                    {
+                        SystemMessage.PrintSM(7, 12, true);
+                        break;
+                    }
                 }
                 catch
                 {
-                    Console.WriteLine("Error conection !!!");
+                    SystemMessage.PrintSM(7, 12, true);
+                    break;
                 }
-            }
-            catch
-            {
-                Console.WriteLine("Error conection !!!");
+                if (tcpClient != null)
+                {
+                    tcpClient.Close();
+                }
+                Thread.Sleep(1);
             }
             Console.ReadKey();
         }

@@ -15,7 +15,7 @@ namespace Server
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(DataMess));
             using (var sww = new StringWriter())
             {
-                using (XmlTextWriter writer = new XmlTextWriter(sww) { Formatting = Formatting.Indented })
+                using (XmlTextWriter writer = new XmlTextWriter(sww) { Formatting = Formatting.Indented})
                 {
                     xmlSerializer.Serialize(writer, dataMess);
                     return sww.ToString();

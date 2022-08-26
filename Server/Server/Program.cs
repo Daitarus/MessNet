@@ -15,11 +15,11 @@ namespace Server
             //enter ip
             while (!flag)
             {
-                Console.Write("Please, enter your ip: ");
+                SystemMessage.PrintSM(0, 15, false);
                 flag = IPAddress.TryParse(Console.ReadLine(), out ip);
                 if (!flag)
                 {
-                    Console.WriteLine("Error: Incorrect ip !!!");
+                    SystemMessage.PrintSM(2, 12, true);
                 }
             }
             flag = false;
@@ -27,20 +27,19 @@ namespace Server
             //enter port
             while (!flag)
             {
-                Console.Write("Please, enter tcp port: ");
+                SystemMessage.PrintSM(1, 15, false);
                 flag = int.TryParse(Console.ReadLine(), out port);
                 if(!flag)
                 {
-                    Console.WriteLine("Error: Uncorrect port !!!");
+                    SystemMessage.PrintSM(2, 12, true);
                 }
             }
 
             //start server
             TcpS tcpS = new TcpS(ip, port);
-            string message;
             if (tcpS.Open())
             {
-                Console.WriteLine("Server start ... ");
+                SystemMessage.PrintSM(3, 14, true);
                 while (true)
                 {
                     TcpClient client = new TcpClient();                  
@@ -48,19 +47,20 @@ namespace Server
                     if (tcpS.GetConnection(out client))
                     {
                         //thread for new client
+                        SystemMessage.PrintSM(5, 11, true);
                         Thread clientThread = new Thread(() => ClientWork(client));
                         clientThread.Start();
                     }
                     else
                     {
-                        Console.WriteLine("Error conection !!!");
+                        SystemMessage.PrintSM(6, 12, true);
                         break;
                     }
                 }
             }
             else
             {
-                Console.WriteLine("Error: Server not started !!!");
+                SystemMessage.PrintSM(4, 12, true);
             }
             Console.ReadKey();
 
@@ -70,16 +70,19 @@ namespace Server
                 TcpC tcpC = new TcpC(client);
                 IPAddress ip = tcpC.GetClientIp();
                 //read message
-                Console.WriteLine("New connection ...");
-                if (tcpC.ReadTcp(out message))
+                while (true)
                 {
-                    //write
-                    DataMess dataMess = new DataMess(DateTime.Now, ip, message);
-                    Console.WriteLine(FileWork.WriteXML(dataMess));
-                }
-                else
-                {
-                    Console.WriteLine("Error: Message don't send, no conection !!!");
+                    if (tcpC.ReadTcp(out message))
+                    {
+                        //write
+                        DataMess dataMess = new DataMess(DateTime.Now, ip, message);
+                        Console.WriteLine(FileWork.WriteXML(dataMess));
+                    }
+                    else
+                    {
+                        SystemMessage.PrintSM(7, 12, true);
+                        break;
+                    }
                 }
                 tcpC.Close();
             }

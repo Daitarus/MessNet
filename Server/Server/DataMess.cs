@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace Server
 {
     [Serializable]
+    [XmlRoot("AllData")]
     public class DataMess
     {
 
