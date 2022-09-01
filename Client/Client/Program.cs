@@ -12,6 +12,7 @@ namespace Client
             bool flag = false;
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             int port = 0;
+            int timeSleep = 1;
 
             //enter ip
             while (!flag)
@@ -34,7 +35,17 @@ namespace Client
                     SystemMessage.PrintSM(2, 12, true);
                 }
             }
-            flag=false;
+            //enter timeSleep sleep
+            while (!flag)
+            {
+                SystemMessage.PrintSM(8, 15, false);
+                flag = int.TryParse(Console.ReadLine(), out timeSleep);
+                if (!flag)
+                {
+                    SystemMessage.PrintSM(2, 12, true);
+                }
+            }
+            flag =false;
             //start client
             TcpClient tcpClient = new TcpClient();
             //connect
@@ -83,7 +94,7 @@ namespace Client
                 {
                     tcpClient.Close();
                 }
-                Thread.Sleep(1);
+                Thread.Sleep(timeSleep);
             }
             Console.ReadKey();
         }

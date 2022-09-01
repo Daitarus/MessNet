@@ -48,8 +48,8 @@ namespace Server
                     {
                         //thread for new client
                         SystemMessage.PrintSM(5, 11, true);
-                        Thread clientThread = new Thread(() => ClientWork(client));
-                        clientThread.Start();
+                        Task clientTask = new Task(() => ClientWork(client));
+                        clientTask.Start();
                     }
                     else
                     {

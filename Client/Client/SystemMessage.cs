@@ -17,7 +17,8 @@ namespace Client
             "Error: Null message !!!",           //4
             "Connection successful ...",         //5
             "Message sended !",                  //6
-            "Error conection !!!"                //7
+            "Error conection !!!",               //7
+            "Please, enter time sleep: "         //8
         };
         public static void PrintSM(int id, int numColor, bool TypePrint)
         {
