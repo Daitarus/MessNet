@@ -19,9 +19,9 @@ namespace Server
             "Error conection !!!",               //6
             "Connection was broken !!!"          //7
         };
-        public static void PrintSM(int id, int numColor, bool TypePrint)
+        public static void PrintSM(int id, ConsoleColor consoleColor, bool TypePrint)
         {
-            Console.ForegroundColor = (ConsoleColor)numColor;
+            Console.ForegroundColor = consoleColor;
             if (TypePrint)
             {
                 Console.WriteLine(SysMess[id]);

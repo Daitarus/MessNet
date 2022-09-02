@@ -35,6 +35,7 @@ namespace Client
                     SystemMessage.PrintSM(2, 12, true);
                 }
             }
+            flag = false;
             //enter timeSleep sleep
             while (!flag)
             {

@@ -18,7 +18,7 @@ namespace Server
         public string message { get; set; }
 
         public DataMess() { }
-        public DataMess(DateTime _datetime, IPAddress _ip, string _message)
+        public DataMess(DateTime _datetime, EndPoint _ip, string _message)
         {
             datetime = _datetime;
             ip = _ip.ToString();

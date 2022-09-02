@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace Server
 {
@@ -8,83 +9,83 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            bool flag=false;
-            IPAddress ip = IPAddress.Parse("127.0.0.1");
+            bool errorEnter=false;
+            IPAddress? ip = IPAddress.Parse("127.0.0.1");
             int port = 0;
 
             //enter ip
-            while (!flag)
+            while (!errorEnter)
             {
-                SystemMessage.PrintSM(0, 15, false);
-                flag = IPAddress.TryParse(Console.ReadLine(), out ip);
-                if (!flag)
+                SystemMessage.PrintSM(0, ConsoleColor.White, false);
+                errorEnter = IPAddress.TryParse(Console.ReadLine(), out ip);
+                if (!errorEnter)
                 {
-                    SystemMessage.PrintSM(2, 12, true);
+                    SystemMessage.PrintSM(2, ConsoleColor.Red, true);
                 }
             }
-            flag = false;
+            errorEnter = false;
 
             //enter port
-            while (!flag)
+            while (!errorEnter)
             {
-                SystemMessage.PrintSM(1, 15, false);
-                flag = int.TryParse(Console.ReadLine(), out port);
-                if(!flag)
+                SystemMessage.PrintSM(1, ConsoleColor.White, false);
+                errorEnter = int.TryParse(Console.ReadLine(), out port);
+                if(!errorEnter)
                 {
-                    SystemMessage.PrintSM(2, 12, true);
+                    SystemMessage.PrintSM(2, ConsoleColor.Red, true);
                 }
             }
 
             //start server
-            TcpS tcpS = new TcpS(ip, port);
-            if (tcpS.Open())
+            IPEndPoint ipPoint = new IPEndPoint(ip, port);
+            Socket listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
             {
-                SystemMessage.PrintSM(3, 14, true);
-                while (true)
+                listenSocket.Bind(ipPoint);
+                listenSocket.Listen(1);
+                SystemMessage.PrintSM(3, ConsoleColor.Yellow, true);
+                while(true)
                 {
-                    TcpClient client = new TcpClient();                  
-                    //connection
-                    if (tcpS.GetConnection(out client))
-                    {
-                        //thread for new client
-                        SystemMessage.PrintSM(5, 11, true);
-                        Task clientTask = new Task(() => ClientWork(client));
-                        clientTask.Start();
-                    }
-                    else
-                    {
-                        SystemMessage.PrintSM(6, 12, true);
-                        break;
-                    }
+                    //get connection
+                    Socket handler = listenSocket.Accept();
+                    //read message
+                    ClientWork(handler);
                 }
             }
-            else
+            catch
             {
-                SystemMessage.PrintSM(4, 12, true);
+                SystemMessage.PrintSM(4, ConsoleColor.Red, true);
             }
-            Console.ReadKey();
 
-            void ClientWork(TcpClient client)
+            async void ClientWork(Socket handler)
             {
-                string message;
-                TcpC tcpC = new TcpC(client);
-                IPAddress ip = tcpC.GetClientIp();
-                //read message
-                while (true)
+                SystemMessage.PrintSM(5, ConsoleColor.Cyan, true);
+                try
                 {
-                    if (tcpC.ReadTcp(out message))
+                    string? message;
+                    await using (NetworkStream stream = new NetworkStream(handler))
                     {
-                        //write
-                        DataMess dataMess = new DataMess(DateTime.Now, ip, message);
-                        Console.WriteLine(FileWork.WriteXML(dataMess));
+                        using (StreamReader reader = new StreamReader(stream))
+                        {
+                            message = reader.ReadLine();
+                        }
                     }
-                    else
+                    DataMess dataMess = new DataMess(DateTime.Now, handler.RemoteEndPoint, message);
+                    Console.WriteLine(FileWork.WriteXML(dataMess));
+                }
+                catch
+                {
+                    SystemMessage.PrintSM(6, ConsoleColor.Red, true);
+                }
+                finally
+                {
+                    if (handler != null)
                     {
-                        SystemMessage.PrintSM(7, 12, true);
-                        break;
+                        SystemMessage.PrintSM(7, ConsoleColor.Blue, true);
+                        handler.Shutdown(SocketShutdown.Both);
+                        handler.Close();
                     }
                 }
-                tcpC.Close();
             }
         }
 
