@@ -55,15 +55,6 @@ namespace Client
             while (true)
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                try
-                {
-                    socket.Connect(ipPoint);
-                    PrintSM("Connection successful ...", ConsoleColor.Yellow, true);
-                }
-                catch
-                {
-                    PrintSM("Error conection !!!", ConsoleColor.Red, true);
-                }
                 //write message
                 string? message = null;
                 while (!errorEnter)
@@ -80,14 +71,23 @@ namespace Client
                 //send
                 try
                 {
-                    byte[] data = Encoding.UTF8.GetBytes(message);
-                    socket.Send(data);
-                    PrintSM("Message sended !", ConsoleColor.Cyan, true);
+                    socket.Connect(ipPoint);
+                    PrintSM("Connection successful ...", ConsoleColor.Yellow, true);
+                    try
+                    {
+                        byte[] data = Encoding.UTF8.GetBytes(message);
+                        socket.Send(data);
+                        PrintSM("Message sended !", ConsoleColor.Cyan, true);
+                    }
+                    catch
+                    {
+                        PrintSM("Error conection !!!", ConsoleColor.Red, true);
+                        break;
+                    }
                 }
                 catch
                 {
                     PrintSM("Error conection !!!", ConsoleColor.Red, true);
-                    //break;
                 }
                 if (socket != null)
                 {
