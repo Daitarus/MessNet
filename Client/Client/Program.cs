@@ -9,95 +9,107 @@ namespace Client
     {
         static void Main(string[] args)
         {
-            bool flag = false;
+            bool errorEnter = false;
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             int port = 0;
             int timeSleep = 1;
 
             //enter ip
-            while (!flag)
+            while (!errorEnter)
             {
-                SystemMessage.PrintSM(0, 15, false);
-                flag = IPAddress.TryParse(Console.ReadLine(), out ip);
-                if (!flag)
+                PrintSM("Please, enter server's ip: ", ConsoleColor.White, false);
+                errorEnter = IPAddress.TryParse(Console.ReadLine(), out ip);
+                if (!errorEnter)
                 {
-                    SystemMessage.PrintSM(2, 12, true);
+                    PrintSM("Error: Incorrect data !!!", ConsoleColor.Red, true);
                 }
             }
-            flag = false;
+            errorEnter = false;
             //enter port
-            while (!flag)
+            while (!errorEnter)
             {
-                SystemMessage.PrintSM(1, 15, false);
-                flag = int.TryParse(Console.ReadLine(), out port);
-                if (!flag)
+                PrintSM("Please, enter tcp port: ", ConsoleColor.White, false);
+                errorEnter = int.TryParse(Console.ReadLine(), out port);
+                if (!errorEnter)
                 {
-                    SystemMessage.PrintSM(2, 12, true);
+                    PrintSM("Error: Incorrect data !!!", ConsoleColor.Red, true);
                 }
             }
-            flag = false;
+            errorEnter = false;
             //enter timeSleep sleep
-            while (!flag)
+            while (!errorEnter)
             {
-                SystemMessage.PrintSM(8, 15, false);
-                flag = int.TryParse(Console.ReadLine(), out timeSleep);
-                if (!flag)
+                PrintSM("Please, enter time sleep: ", ConsoleColor.White, false);
+                errorEnter = int.TryParse(Console.ReadLine(), out timeSleep);
+                if (!errorEnter)
                 {
-                    SystemMessage.PrintSM(2, 12, true);
+                    PrintSM("Error: Incorrect data !!!", ConsoleColor.Red, true);
                 }
             }
-            flag =false;
+            errorEnter =false;
             //start client
-            TcpClient tcpClient = new TcpClient();
+            IPEndPoint ipPoint = new IPEndPoint(ip, port);
+            Socket socket;
+
             //connect
             while (true)
             {
-                //write message
-                string? message = null;
-                while (!flag)
-                {
-                    //SystemMessage.PrintSM(3, 10, false);
-                    message = ip.ToString();
-                    flag = !string.IsNullOrEmpty(message);
-                    if (!flag)
-                    {
-                        SystemMessage.PrintSM(4, 12, true);
-                    }
-                }
-                flag = false;
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
-                    tcpClient = new TcpClient();
-                    tcpClient.Connect(ip, port);
-                    SystemMessage.PrintSM(5, 14, true);
-                    //send
-                    try
-                    {
-                        NetworkStream stream = tcpClient.GetStream();
-                        StreamWriter writer = new StreamWriter(stream);
-                        writer.WriteLine(message);
-                        writer.Close();
-                        stream.Close();
-                        SystemMessage.PrintSM(6, 11, true);
-                    }
-                    catch
-                    {
-                        SystemMessage.PrintSM(7, 12, true);
-                        break;
-                    }
+                    socket.Connect(ipPoint);
+                    PrintSM("Connection successful ...", ConsoleColor.Yellow, true);
                 }
                 catch
                 {
-                    SystemMessage.PrintSM(7, 12, true);
-                    break;
+                    PrintSM("Error conection !!!", ConsoleColor.Red, true);
                 }
-                if (tcpClient != null)
+                //write message
+                string? message = null;
+                while (!errorEnter)
                 {
-                    tcpClient.Close();
+                    //PrintSM("Enter your message: ", ConsoleColor.Green, false);
+                    message = ip.ToString();
+                    errorEnter = !string.IsNullOrEmpty(message);
+                    if (!errorEnter)
+                    {
+                        PrintSM("Error: Null message !!!", ConsoleColor.Red, true); 
+                    }
+                }
+                errorEnter = false;
+                //send
+                try
+                {
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+                    socket.Send(data);
+                    PrintSM("Message sended !", ConsoleColor.Cyan, true);
+                }
+                catch
+                {
+                    PrintSM("Error conection !!!", ConsoleColor.Red, true);
+                    //break;
+                }
+                if (socket != null)
+                {
+                    socket.Close();
                 }
                 Thread.Sleep(timeSleep);
             }
             Console.ReadKey();
+        }
+
+        public static void PrintSM(string message, ConsoleColor consoleColor, bool ifNewLine)
+        {
+            Console.ForegroundColor = consoleColor;
+            if (ifNewLine)
+            {
+                Console.WriteLine(message);
+            }
+            else
+            {
+                Console.Write(message);
+            }
+            Console.ResetColor();
         }
     }
 }

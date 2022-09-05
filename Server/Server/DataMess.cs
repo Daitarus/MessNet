@@ -21,7 +21,10 @@ namespace Server
         public DataMess(DateTime _datetime, EndPoint _ip, string _message)
         {
             datetime = _datetime;
-            ip = _ip.ToString();
+            if (_ip != null)
+            {
+                ip = _ip.ToString();
+            }
             message = _message;
         }
     }

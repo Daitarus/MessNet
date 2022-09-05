@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Xml;
+using System.Xml.Serialization;
 using System.Text;
 
 namespace Server
@@ -16,23 +18,23 @@ namespace Server
             //enter ip
             while (!errorEnter)
             {
-                SystemMessage.PrintSM(0, ConsoleColor.White, false);
+                PrintSM("Please, enter your ip: ", ConsoleColor.White, false);
                 errorEnter = IPAddress.TryParse(Console.ReadLine(), out ip);
                 if (!errorEnter)
                 {
-                    SystemMessage.PrintSM(2, ConsoleColor.Red, true);
+                    PrintSM("Error: Incorrect data !!!", ConsoleColor.Red, true);
                 }
             }
             errorEnter = false;
 
-            //enter port
+            //enter port 
             while (!errorEnter)
             {
-                SystemMessage.PrintSM(1, ConsoleColor.White, false);
+                PrintSM("Please, enter tcp port: ", ConsoleColor.White, false);
                 errorEnter = int.TryParse(Console.ReadLine(), out port);
                 if(!errorEnter)
                 {
-                    SystemMessage.PrintSM(2, ConsoleColor.Red, true);
+                    PrintSM("Error: Incorrect data !!!", ConsoleColor.Red, true);
                 }
             }
 
@@ -42,9 +44,9 @@ namespace Server
             try
             {
                 listenSocket.Bind(ipPoint);
-                listenSocket.Listen(1);
-                SystemMessage.PrintSM(3, ConsoleColor.Yellow, true);
-                while(true)
+                listenSocket.Listen(10);
+                PrintSM("Server start ...", ConsoleColor.Yellow, true);
+                while (true)
                 {
                     //get connection
                     Socket handler = listenSocket.Accept();
@@ -54,40 +56,64 @@ namespace Server
             }
             catch
             {
-                SystemMessage.PrintSM(4, ConsoleColor.Red, true);
+                PrintSM("Error: Server not started !!!", ConsoleColor.Red, true);
             }
 
-            async void ClientWork(Socket handler)
+            async void ClientWork(Socket clientSocket)
             {
-                SystemMessage.PrintSM(5, ConsoleColor.Cyan, true);
+                PrintSM("New connection ...", ConsoleColor.Cyan, true);
                 try
                 {
                     string? message;
-                    await using (NetworkStream stream = new NetworkStream(handler))
+                    await using (NetworkStream stream = new NetworkStream(clientSocket))
                     {
                         using (StreamReader reader = new StreamReader(stream))
                         {
                             message = reader.ReadLine();
                         }
                     }
-                    DataMess dataMess = new DataMess(DateTime.Now, handler.RemoteEndPoint, message);
-                    Console.WriteLine(FileWork.WriteXML(dataMess));
+                    DataMess dataMess = new DataMess(DateTime.Now, clientSocket.RemoteEndPoint, message);
+                    Console.WriteLine(WriteXML(dataMess));
                 }
                 catch
                 {
-                    SystemMessage.PrintSM(6, ConsoleColor.Red, true);
+                    PrintSM("Error conection !!!", ConsoleColor.Red, true);
                 }
                 finally
                 {
-                    if (handler != null)
+                    if (clientSocket != null)
                     {
-                        SystemMessage.PrintSM(7, ConsoleColor.Blue, true);
-                        handler.Shutdown(SocketShutdown.Both);
-                        handler.Close();
+                        PrintSM("Connection was broken !!!", ConsoleColor.Blue, true);
+                        clientSocket.Shutdown(SocketShutdown.Both);
+                        clientSocket.Close();
                     }
                 }
             }
         }
-
+        public static void PrintSM(string message, ConsoleColor consoleColor, bool ifNewLine)
+        {
+            Console.ForegroundColor = consoleColor;
+            if (ifNewLine)
+            {
+                Console.WriteLine(message);
+            }
+            else
+            {
+                Console.Write(message);
+            }
+            Console.ResetColor();
+        }
+        public static string WriteXML(DataMess dataMess)
+        {
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(DataMess));
+            using (var sww = new StringWriter())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(sww) { Formatting = Formatting.Indented })
+                {
+                    xmlSerializer.Serialize(writer, dataMess);
+                    return sww.ToString();
+                }
+            }
+        }
     }
 }
