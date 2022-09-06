@@ -12,7 +12,6 @@ namespace Client
             bool errorEnter = false;
             IPAddress ip = IPAddress.Parse("127.0.0.1");
             int port = 0;
-            int timeSleep = 1;
 
             //enter ip
             while (!errorEnter)
@@ -36,18 +35,6 @@ namespace Client
                 }
             }
             errorEnter = false;
-            //enter timeSleep sleep
-            while (!errorEnter)
-            {
-                PrintSM("Please, enter time sleep: ", ConsoleColor.White, false);
-                errorEnter = int.TryParse(Console.ReadLine(), out timeSleep);
-                if (!errorEnter)
-                {
-                    PrintSM("Error: Incorrect data !!!", ConsoleColor.Red, true);
-                }
-            }
-            errorEnter =false;
-            //start client
             IPEndPoint ipPoint = new IPEndPoint(ip, port);
             Socket socket;
 
@@ -55,45 +42,45 @@ namespace Client
             while (true)
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                try
+                {
+                    socket.Connect(ipPoint);
+                    PrintSM("Connection successful ...", ConsoleColor.Yellow, true);
+                }
+                catch
+                {
+                    PrintSM("Error conection !!!", ConsoleColor.Red, true);
+                    break;
+                }
                 //write message
                 string? message = null;
                 while (!errorEnter)
                 {
-                    //PrintSM("Enter your message: ", ConsoleColor.Green, false);
-                    message = ip.ToString();
+                    PrintSM("Enter your message: ", ConsoleColor.Green, false);
+                    message = Console.ReadLine();
                     errorEnter = !string.IsNullOrEmpty(message);
                     if (!errorEnter)
                     {
-                        PrintSM("Error: Null message !!!", ConsoleColor.Red, true); 
+                        PrintSM("Error: Null message !!!", ConsoleColor.Red, true);
                     }
                 }
                 errorEnter = false;
                 //send
                 try
                 {
-                    socket.Connect(ipPoint);
-                    PrintSM("Connection successful ...", ConsoleColor.Yellow, true);
-                    try
-                    {
-                        byte[] data = Encoding.UTF8.GetBytes(message);
-                        socket.Send(data);
-                        PrintSM("Message sended !", ConsoleColor.Cyan, true);
-                    }
-                    catch
-                    {
-                        PrintSM("Error conection !!!", ConsoleColor.Red, true);
-                        break;
-                    }
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+                    socket.Send(data);
+                    PrintSM("Message sended !", ConsoleColor.Cyan, true);
                 }
                 catch
                 {
                     PrintSM("Error conection !!!", ConsoleColor.Red, true);
+                    break;
                 }
                 if (socket != null)
                 {
                     socket.Close();
                 }
-                Thread.Sleep(timeSleep);
             }
             Console.ReadKey();
         }
